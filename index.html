@@ -2,89 +2,162 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Campo Minado Genético</title>
+<title>Boss Fight Genética Evolutiva 🧬🐍</title>
 <style>
-  body { font-family: Arial; text-align: center; background:#111; color:#fff; }
-  #grid { display: grid; grid-template-columns: repeat(10, 40px); gap: 4px; justify-content: center; margin-top:20px; }
-  .cell { width:40px; height:40px; background:#444; display:flex; align-items:center; justify-content:center; cursor:pointer; }
-  .revealed { background:#ddd; color:#000; }
+  body { margin:0; font-family:Arial; background:#0a0a0a; color:#fff; text-align:center; overflow:hidden; }
+  #game { padding:20px; }
+  #monster { font-size:50px; margin:10px; transition:0.3s; }
+  #genes { font-size:26px; margin:10px; }
+  #options button { margin:8px; padding:15px; font-size:18px; background:#222; color:#fff; border:2px solid #555; cursor:pointer; }
+  #city { height:20px; background:red; margin-top:20px; transition:0.3s; }
+  #timer { font-size:22px; margin:10px; color:#ff4444; }
+  .hit { transform:scale(1.3); color:#ff4444; }
 </style>
 </head>
 <body>
-<h1>Campo Minado Genético</h1>
-<p>AA = dominante | Aa = intermediário | aa = recessivo (mina)</p>
-<button onclick="startGame()">Nova Fase</button>
-<div id="grid"></div><script>
-const size = 10;
-let board = [];
+<div id="game">
+  <h1>🏙️ BOSS Genético Evolutivo 🧬🐍</h1>
+  <p>A dificuldade aumenta conforme você destrói o monstro!</p>
+  <div id="timer"></div>
+  <div id="monster"></div>
+  <div id="genes"></div>
+  <div id="options"></div>
+  <div id="city"></div>
+</div><script>
+let health = 100;
+let segments = 8;
+let currentAnswer = 0;
+let time = 10;
+let timerInterval;
 
-function getNeighbors(x,y){
-  return [
-    [x-1,y],[x+1,y],[x,y-1],[x,y+1]
-  ].filter(([i,j])=> i>=0 && j>=0 && i<size && j<size);
+function randomGene(){ return Math.random()<0.5 ? "A" : "a"; }
+
+function generateIndividual(){ return randomGene()+randomGene(); }
+
+function cross(p1,p2){
+  let combos=[];
+  for(let g1 of p1){
+    for(let g2 of p2){ combos.push(g1+g2); }
+  }
+  return combos;
 }
 
-function startGame(){
-  board = Array(size).fill().map(()=>Array(size).fill(null));
-
-  // Primeiro coloca AA
-  for(let i=0;i<size;i++){
-    for(let j=0;j<size;j++){
-      if(Math.random()<0.15) board[i][j]="AA";
-    }
-  }
-
-  // Garante regra: AA cercado por As
-  for(let i=0;i<size;i++){
-    for(let j=0;j<size;j++){
-      if(board[i][j]==="AA"){
-        getNeighbors(i,j).forEach(([x,y])=>{
-          if(board[x][y]===null) board[x][y]="Aa";
-        });
-      }
-    }
-  }
-
-  // Preenche resto com Aa ou aa respeitando regra
-  for(let i=0;i<size;i++){
-    for(let j=0;j<size;j++){
-      if(board[i][j]===null){
-        let neighbors = getNeighbors(i,j);
-        let hasAaNeighbor = neighbors.some(([x,y])=> board[x][y]==="Aa");
-        board[i][j] = hasAaNeighbor ? (Math.random()<0.3?"aa":"Aa") : "Aa";
-      }
-    }
-  }
-
-  render();
+function calculateChanceAA(combos){
+  return (combos.filter(c=>c==="aa").length/combos.length)*100;
 }
 
-function render(){
-  const grid = document.getElementById("grid");
-  grid.innerHTML="";
+function generateCross(){
+  let difficulty = 8 - segments;
+  let text="";
+  let chance=0;
 
-  for(let i=0;i<size;i++){
-    for(let j=0;j<size;j++){
-      const div = document.createElement("div");
-      div.className="cell";
-      div.onclick = ()=> reveal(div,i,j);
-      grid.appendChild(div);
+  if(difficulty < 3){
+    // básico
+    let p1 = generateIndividual();
+    let p2 = generateIndividual();
+    text = `${p1} x ${p2}`;
+    chance = calculateChanceAA(cross(p1,p2));
+  } else {
+    // avançado com avós
+    let g1 = generateIndividual();
+    let g2 = generateIndividual();
+    let g3 = generateIndividual();
+    let g4 = generateIndividual();
+
+    let parent1 = cross(g1,g2);
+    let parent2 = cross(g3,g4);
+
+    // escolher aleatoriamente possíveis filhos dos pais
+    let p1 = parent1[Math.floor(Math.random()*parent1.length)];
+    let p2 = parent2[Math.floor(Math.random()*parent2.length)];
+
+    text = `Avós: ${g1}x${g2} e ${g3}x${g4} → Pais: ${p1} x ${p2}`;
+    chance = calculateChanceAA(cross(p1,p2));
+  }
+
+  currentAnswer = chance;
+  document.getElementById("genes").textContent = text;
+
+  createOptions();
+  resetTimer();
+}
+
+function createOptions(){
+  let optionsDiv = document.getElementById("options");
+  optionsDiv.innerHTML = "";
+
+  let choices = [0,25,50,75,100];
+  choices.sort(()=>Math.random()-0.5);
+
+  choices.slice(0,4).forEach(val => {
+    let btn = document.createElement("button");
+    btn.textContent = val + "%";
+    btn.onclick = ()=> checkAnswer(val);
+    optionsDiv.appendChild(btn);
+  });
+}
+
+function checkAnswer(val){
+  if(val === currentAnswer){ hitMonster(); }
+  else { damageCity(); }
+}
+
+function hitMonster(){
+  segments--;
+  const monster = document.getElementById("monster");
+  monster.classList.add("hit");
+  setTimeout(()=> monster.classList.remove("hit"),200);
+
+  updateMonster();
+
+  if(segments<=0){
+    alert("🏆 BOSS derrotado! Você dominou genética avançada!");
+    resetGame();
+    return;
+  }
+
+  generateCross();
+}
+
+function damageCity(){
+  health -= 15;
+  document.getElementById("city").style.width = health + "%";
+
+  if(health<=0){
+    alert("💀 A cidade foi destruída!");
+    resetGame();
+  }
+}
+
+function updateMonster(){
+  document.getElementById("monster").textContent = "🐍".repeat(segments);
+}
+
+function resetTimer(){
+  clearInterval(timerInterval);
+  time = 10;
+  document.getElementById("timer").textContent = `⏱️ ${time}s`;
+
+  timerInterval = setInterval(()=>{
+    time--;
+    document.getElementById("timer").textContent = `⏱️ ${time}s`;
+
+    if(time<=0){
+      clearInterval(timerInterval);
+      damageCity();
+      generateCross();
     }
-  }
+  },1000);
 }
 
-function reveal(div,i,j){
-  if(div.classList.contains("revealed")) return;
-
-  div.classList.add("revealed");
-  div.textContent = board[i][j];
-
-  if(board[i][j]==="aa"){
-    alert("Você clicou em um gene recessivo (aa)! Perdeu!");
-    startGame();
-  }
+function resetGame(){
+  health = 100;
+  segments = 8;
+  document.getElementById("city").style.width = "100%";
+  updateMonster();
+  generateCross();
 }
 
-startGame();
+resetGame();
 </script></body>
 </html>
