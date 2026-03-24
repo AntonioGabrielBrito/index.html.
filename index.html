@@ -2,268 +2,130 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultra Final Boss 🧬🐍</title>
+<title>Modo Vício Total 🧬</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:'Poppins',sans-serif;
-  background:linear-gradient(180deg,#020617,#0f172a);
-  color:#fff;
-  overflow:hidden;
-}
-#game{max-width:420px;margin:auto;padding:20px;text-align:center}/* Cidade skyline */ #skyline{ position:fixed; bottom:0; left:0; width:100%; height:120px; background:linear-gradient(to top,#000,transparent), repeating-linear-gradient( to right, #111 0 20px, #000 20px 40px ); opacity:0.7; }
-
-#monster{ font-size:50px; margin:20px 0; animation:float 2s infinite ease-in-out; }
-
-@keyframes float{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-15px)} }
-
-.hit{animation:hit 0.2s} @keyframes hit{0%{transform:scale(1)}50%{transform:scale(1.5)}100%{transform:scale(1)}}
-
-#genes{ background:rgba(255,255,255,0.05); padding:14px; border-radius:12px; margin:12px 0; backdrop-filter:blur(8px); }
-
-#options{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-button{ padding:14px; border-radius:12px; border:none; background:linear-gradient(145deg,#1e293b,#0f172a); color:#fff; font-size:16px; cursor:pointer; transition:0.2s; } button:hover{transform:scale(1.08)} button:active{transform:scale(0.9)}
-
-#hud{display:flex;justify-content:space-between;margin-top:10px}
-
-#cityBar{height:12px;background:#222;border-radius:10px;overflow:hidden;margin-top:10px} #city{height:100%;width:100%;background:linear-gradient(90deg,#ff4d4d,#ff0000);transition:0.3s}
-
-#timer{color:#f87171}
-
-/* Flash + shake */ #flash{ position:fixed;top:0;left:0;width:100%;height:100%; background:white;opacity:0;pointer-events:none; }
-
-.explode{animation:explode 0.3s} @keyframes explode{0%{opacity:0.9}100%{opacity:0}}
-
-.shake{animation:shake 0.3s} @keyframes shake{ 0%{transform:translate(0)} 25%{transform:translate(-5px,5px)} 50%{transform:translate(5px,-5px)} 75%{transform:translate(-5px,-5px)} 100%{transform:translate(0)} }
-
-</style>
-</head>
-<body>
-<div id="flash"></div>
-<div id="skyline"></div><div id="game">
-<h2>🏙️ Defesa Final</h2>
-<div id="monster"></div>
-<div id="genes"></div>
-<div id="options"></div><div id="hud">
-  <div id="timer"></div>
-  <div id="hp"></div>
-</div><div id="cityBar"><div id="city"></div></div>
-</div><script>
-let health=100,segments=10,currentAnswer=0,time=10,timerInterval;
-
-function randGene(){return Math.random()<0.5?"A":"a"}
-function indiv(){return randGene()+randGene()}
-
-function cross(a,b){let c=[];for(let x of a){for(let y of b){c.push(x+y)}}return c}
-function chance(c){return (c.filter(x=>x==="aa").length/c.length)*100}
-
-function gen(){
- let diff=10-segments,text,ch;
- if(diff<4){
-  let p1=indiv(),p2=indiv();
-  text=`${p1} × ${p2}`;
-  ch=chance(cross(p1,p2));
- }else{
-  let g1=indiv(),g2=indiv(),g3=indiv(),g4=indiv();
-  let p1=cross(g1,g2)[Math.floor(Math.random()*4)];
-  let p2=cross(g3,g4)[Math.floor(Math.random()*4)];
-  text=`Avós: ${g1}×${g2} | ${g3}×${g4}\nPais: ${p1} × ${p2}`;
-  ch=chance(cross(p1,p2));
- }
- currentAnswer=ch;
- document.getElementById("genes").textContent=text;
- opts(); timer();
-}
-
-function opts(){
- let o=document.getElementById("options");o.innerHTML="";
- let v=[0,25,50,75,100].sort(()=>Math.random()-0.5);
- v.slice(0,4).forEach(x=>{
-  let b=document.createElement("button");
-  b.textContent=x+"%";
-  b.onclick=()=>ans(x);
-  o.appendChild(b);
- })
-}
-
-function ans(v){v===currentAnswer?hit():dmg()}
-
-function hit(){
- segments--;
- animateHit();
- upd();
- if(segments<=0){alert("🏆 Vitória absoluta!");reset();return}
- gen();
-}
-
-function dmg(){
- health-=12;
- document.getElementById("city").style.width=health+"%";
- animateDamage();
- upd();
- if(health<=0){alert("💀 Cidade destruída!");reset()}
-}
-
-function animateHit(){
- let m=document.getElementById("monster");
- m.classList.add("hit");
- flash();
- setTimeout(()=>m.classList.remove("hit"),150);
-}
-
-function animateDamage(){
- document.body.classList.add("shake");
- flash();
- setTimeout(()=>document.body.classList.remove("shake"),300);
-}
-
-function flash(){
- let f=document.getElementById("flash");
- f.classList.add("explode");
- setTimeout(()=>f.classList.remove("explode"),200);
-}
-
-function upd(){
- document.getElementById("monster").textContent="🐍".repeat(segments);
- document.getElementById("hp").textContent=`Cidade: ${health}%`;
-}
-
-function timer(){
- clearInterval(timerInterval);
- time=10;showT();
- timerInterval=setInterval(()=>{
-  time--;showT();
-  if(time<=0){clearInterval(timerInterval);dmg();gen()}
- },1000)
-}
-
-function showT(){document.getElementById("timer").textContent=`⏱ ${time}s`}
-
-function reset(){health=100;segments=10;document.getElementById("city").style.width="100%";upd();gen()}
-
-reset();
-</script></body>
-</html>  padding:14px;
-  border-radius:12px;
-  border:none;
-  background:linear-gradient(145deg,#1e293b,#0f172a);
-  color:#fff;
-  font-size:16px;
-  cursor:pointer;
-  transition:0.2s;
-}
+body{margin:0;font-family:'Poppins',sans-serif;background:#0f172a;color:#fff;display:flex;justify-content:center}
+#game{max-width:420px;width:100%;padding:16px;text-align:center}
+.card{background:#1e293b;border-radius:14px;padding:14px;margin:10px 0}
+#teacher{font-size:50px;transition:0.2s}
+#board{font-size:22px;margin-top:8px}
+#options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+button{padding:14px;border-radius:10px;border:none;background:#22c55e;color:#fff;font-size:16px;cursor:pointer;transition:0.2s}
 button:hover{transform:scale(1.05)}
-button:active{transform:scale(0.9)}
-#hud{display:flex;justify-content:space-between;margin-top:10px}
-#cityBar{height:12px;background:#222;border-radius:10px;overflow:hidden;margin-top:10px}
-#city{height:100%;width:100%;background:linear-gradient(90deg,#ff4d4d,#ff0000);transition:0.3s}
-#timer{color:#f87171}
-#flash{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  background:white;opacity:0;pointer-events:none;
-}
-.explode{animation:explode 0.3s}
-@keyframes explode{0%{opacity:0.8}100%{opacity:0}}
+#hud{display:flex;justify-content:space-between;font-size:14px}
+#combo{font-size:18px;color:#facc15}
 </style>
 </head>
 <body>
-<div id="flash"></div>
-<div id="game">
-<h2>🏙️ Defesa Genética</h2>
-<div id="monster"></div>
-<div id="genes"></div>
-<div id="options"></div>
-<div id="hud">
-  <div id="timer"></div>
-  <div id="hp"></div>
+<div id="game"><div id="startScreen" class="card">
+<h3>Seu nome</h3>
+<input id="nameInput" style="width:100%;padding:10px;border-radius:8px"/>
+<button onclick="startGame()">Começar</button>
+</div><div id="playScreen" style="display:none">
+<div class="card">
+<div id="teacher">👩‍🏫</div>
+<div id="board"></div>
+<div id="feedback"></div>
+<div id="combo"></div>
+</div><div id="options"></div><div class="card" id="hud">
+<div id="timer"></div>
+<div id="score"></div>
 </div>
-<div id="cityBar"><div id="city"></div></div>
-</div><script>
-let health=100,segments=8,currentAnswer=0,time=10,timerInterval;
+</div><div id="endScreen" style="display:none" class="card">
+<h3>Resultado</h3>
+<div id="finalStats"></div>
+<div id="ranking"></div>
+<button onclick="location.reload()">Jogar novamente</button>
+</div></div><script>
+let name="";
+let correct=0,wrong=0;
+let streak=0,maxStreak=0;
+let comboMulti=1;
+let currentAnswer=0;
+let time=60;
+let timer;
 
 function randGene(){return Math.random()<0.5?"A":"a"}
 function indiv(){return randGene()+randGene()}
-
 function cross(a,b){let c=[];for(let x of a){for(let y of b){c.push(x+y)}}return c}
 function chance(c){return (c.filter(x=>x==="aa").length/c.length)*100}
 
-function gen(){
- let diff=8-segments,text,ch;
- if(diff<3){
-  let p1=indiv(),p2=indiv();
-  text=`${p1} × ${p2}`;
-  ch=chance(cross(p1,p2));
- }else{
-  let g1=indiv(),g2=indiv(),g3=indiv(),g4=indiv();
-  let p1=cross(g1,g2)[Math.floor(Math.random()*4)];
-  let p2=cross(g3,g4)[Math.floor(Math.random()*4)];
-  text=`Avós: ${g1}×${g2} | ${g3}×${g4}\nPais: ${p1} × ${p2}`;
-  ch=chance(cross(p1,p2));
- }
- currentAnswer=ch;
- document.getElementById("genes").textContent=text;
- opts(); timer();
+function startGame(){
+ name=document.getElementById("nameInput").value||"Player";
+ document.getElementById("startScreen").style.display="none";
+ document.getElementById("playScreen").style.display="block";
+ nextQ(); startTimer();
 }
 
-function opts(){
+function nextQ(){
+ let p1=indiv(),p2=indiv();
+ currentAnswer=chance(cross(p1,p2));
+ document.getElementById("board").textContent=`${p1} × ${p2}`;
+ renderOpts();
+}
+
+function renderOpts(){
  let o=document.getElementById("options");o.innerHTML="";
- let v=[0,25,50,75,100].sort(()=>Math.random()-0.5);
- v.slice(0,4).forEach(x=>{
+ let vals=[0,25,50,75,100].sort(()=>Math.random()-0.5);
+ vals.slice(0,4).forEach(v=>{
   let b=document.createElement("button");
-  b.textContent=x+"%";
-  b.onclick=()=>ans(x);
+  b.textContent=v+"%";
+  b.onclick=()=>ans(v);
   o.appendChild(b);
- })
+ });
 }
 
-function ans(v){v===currentAnswer?hit():dmg()}
-
-function hit(){
- segments--;
- let m=document.getElementById("monster");
- m.classList.add("hit");
- flash();
- setTimeout(()=>m.classList.remove("hit"),150);
- upd();
- if(segments<=0){alert("🏆 Vitória!");reset();return}
- gen();
+function ans(v){
+ if(v===currentAnswer){
+  streak++; correct++;
+  if(streak>maxStreak) maxStreak=streak;
+  comboMulti = 1 + Math.floor(streak/3);
+  document.getElementById("feedback").textContent="⭐ Acertou!";
+ } else {
+  wrong++; streak=0; comboMulti=1;
+  document.getElementById("feedback").textContent="😡 Errou!";
+ }
+ updateHUD(); nextQ();
 }
 
-function dmg(){
- health-=15;
- document.getElementById("city").style.width=health+"%";
- flash();
- upd();
- if(health<=0){alert("💀 Derrota!");reset()}
+function updateHUD(){
+ document.getElementById("score").textContent=`⭐ ${correct} | ❌ ${wrong}`;
+ document.getElementById("combo").textContent=`🔥 Combo x${comboMulti}`;
 }
 
-function flash(){
- let f=document.getElementById("flash");
- f.classList.add("explode");
- setTimeout(()=>f.classList.remove("explode"),200);
+function startTimer(){
+ timer=setInterval(()=>{
+  time--;
+  document.getElementById("timer").textContent=`⏱ ${time}s`;
+  if(time<=0){clearInterval(timer);endGame();}
+ },1000);
 }
 
-function upd(){
- document.getElementById("monster").textContent="🐍".repeat(segments);
- document.getElementById("hp").textContent=`Cidade: ${health}%`;
+function endGame(){
+ document.getElementById("playScreen").style.display="none";
+ document.getElementById("endScreen").style.display="block";
+ let score=(correct-wrong)*comboMulti;
+ document.getElementById("finalStats").innerHTML=
+ `Nome: ${name}<br>⭐ ${correct}<br>❌ ${wrong}<br>🔥 Max Streak: ${maxStreak}<br>🏆 Score: ${score}`;
+ save(score);
+ load();
 }
 
-function timer(){
- clearInterval(timerInterval);
- time=10;showT();
- timerInterval=setInterval(()=>{
-  time--;showT();
-  if(time<=0){clearInterval(timerInterval);dmg();gen()}
- },1000)
+function save(score){
+ let d=JSON.parse(localStorage.getItem("rank")||"[]");
+ d.push({name,score});
+ d.sort((a,b)=>b.score-a.score);
+ d=d.slice(0,10);
+ localStorage.setItem("rank",JSON.stringify(d));
 }
 
-function showT(){document.getElementById("timer").textContent=`⏱ ${time}s`}
-
-function reset(){health=100;segments=8;document.getElementById("city").style.width="100%";upd();gen()}
-
-reset();
+function load(){
+ let d=JSON.parse(localStorage.getItem("rank")||"[]");
+ let h="";
+ d.forEach((p,i)=>h+=`${i+1}. ${p.name} - ${p.score}<br>`);
+ document.getElementById("ranking").innerHTML=h;
+}
 </script></body>
-</html>
+           </html>
